@@ -2,6 +2,7 @@ import { NestFactory } from '@nestjs/core';
 import { MicroserviceOptions, Transport } from '@nestjs/microservices';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import 'dotenv/config';
+import './global/apm/applicationinsights';
 import { AppModule } from './global/modules/app.module';
 
 async function bootstrap() {
