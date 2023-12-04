@@ -1,0 +1,46 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+model work_item_categories {
+  id         String       @id @default(auto()) @map("_id") @db.ObjectId
+  key        String       @unique
+  created_at DateTime     @default(now())
+  updated_at DateTime     @updatedAt
+  deleted_at DateTime?
+  work_items work_items[]
+}
+
+model work_items {
+  id              String               @id @default(auto()) @map("_id") @db.ObjectId
+  user_id         String
+  title           String
+  scope           String               @default("new")
+  content         String?
+  checked         Boolean              @default(false)
+  date            DateTime?
+  created_at      DateTime             @default(now())
+  updated_at      DateTime             @updatedAt
+  deleted_at      DateTime?
+  woi_category_id String               @db.ObjectId
+  woi_category    work_item_categories @relation(fields: [woi_category_id], references: [id])
+}
+
+model notifications {
+  id          String    @id @default(auto()) @map("_id") @db.ObjectId
+  external_id String
+  type        Int       @default(0)
+  to_retain   Boolean   @default(false)
+  data        Json?
+  created_at  DateTime  @default(now())
+  updated_at  DateTime  @updatedAt
+  deleted_at  DateTime?
+}
