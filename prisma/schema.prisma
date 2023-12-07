@@ -11,12 +11,60 @@ datasource db {
 }
 
 model users {
-  id         String    @id @default(auto()) @map("_id") @db.ObjectId
+  id         String           @id @default(auto()) @map("_id") @db.ObjectId
   name       String
-  email      String    @unique
+  email      String           @unique
+  created_at DateTime         @default(now())
+  updated_at DateTime         @updatedAt
+  deleted_at DateTime?
+  accounts   users_accounts[]
+}
+
+model accounts {
+  id         String           @id @default(auto()) @map("_id") @db.ObjectId
+  name       String
+  created_at DateTime         @default(now())
+  updated_at DateTime         @updatedAt
+  deleted_at DateTime?
+  users      users_accounts[]
+  apps       apps_accounts[]
+}
+
+model users_accounts {
+  id         String    @id @default(auto()) @map("_id") @db.ObjectId
+  role       Int       @default(0)
+  user_id    String    @db.ObjectId
+  account_id String    @db.ObjectId
   created_at DateTime  @default(now())
   updated_at DateTime  @updatedAt
   deleted_at DateTime?
+  user       users     @relation(fields: [user_id], references: [id])
+  account    accounts  @relation(fields: [account_id], references: [id])
+
+  @@unique([user_id, account_id])
+}
+
+model apps {
+  id         String    @id @default(auto()) @map("_id") @db.ObjectId
+  name       String
+  scope      String
+  created_at DateTime  @default(now())
+  updated_at DateTime  @updatedAt
+  deleted_at DateTime?
+
+  accounts apps_accounts[]
+}
+
+model apps_accounts {
+  id          String    @id @default(auto()) @map("_id") @db.ObjectId
+  app_id      String    @db.ObjectId
+  account_id  String    @db.ObjectId
+  hired_at    DateTime  @default(now())
+  canceled_at DateTime?
+  app         apps      @relation(fields: [app_id], references: [id])
+  account     accounts  @relation(fields: [account_id], references: [id])
+
+  @@unique([app_id, account_id])
 }
 
 model work_item_categories {
