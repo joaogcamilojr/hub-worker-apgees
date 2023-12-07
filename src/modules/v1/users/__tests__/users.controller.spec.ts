@@ -15,6 +15,14 @@ describe('UsersController', () => {
 					provide: PrismaService,
 					useValue: {},
 				},
+				{
+					provide: 'CACHE_MANAGER',
+					useValue: {
+						del: jest.fn(),
+						get: jest.fn(),
+						set: jest.fn(),
+					},
+				},
 			],
 		}).compile();
 
