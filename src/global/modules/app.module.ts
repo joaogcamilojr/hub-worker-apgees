@@ -1,8 +1,8 @@
 import { CacheModule } from '@nestjs/cache-manager';
 import { Module } from '@nestjs/common';
 import { V1Modules } from '../../modules';
-import { AppController } from '../controllers/app.controller';
-import { AppService } from '../services/app.service';
+import { AppController } from '../controllers';
+import { AppService } from '../services';
 
 @Module({
 	imports: [

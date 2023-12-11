@@ -30,7 +30,7 @@ export class UsersService {
 		return user;
 	}
 
-	async findAll() {
+	async findAll(account_id: string) {
 		const cache_key = `users`;
 
 		const cache_users = await this.cache.get(cache_key);
@@ -39,15 +39,17 @@ export class UsersService {
 			return cache_users;
 		}
 
-		const users = await this.prisma.users.findMany();
+		const users = await this.prisma.users.findMany({
+			where: { accounts: { some: { account_id } } },
+		});
 
 		await this.cache.set(cache_key, users, 60 * 60 * 12);
 
 		return users;
 	}
 
-	async me(id: string) {
-		const cache_key = `user:${id}`;
+	async me(email: string) {
+		const cache_key = `user:${email}`;
 
 		const cache_profile = await this.cache.get(cache_key);
 
@@ -56,11 +58,18 @@ export class UsersService {
 		}
 
 		const profile = await this.prisma.users.findUnique({
-			where: { id },
+			where: { email },
 			select: {
 				id: true,
 				email: true,
 				name: true,
+				provider: {
+					select: {
+						id: true,
+						sub: true,
+						updated_at: true,
+					},
+				},
 				accounts: {
 					select: {
 						id: true,
@@ -88,6 +97,33 @@ export class UsersService {
 		});
 
 		await this.cache.set(cache_key, profile, 60 * 60 * 12);
+
+		return profile;
+	}
+
+	async updateMe(email: string, { provider }: any) {
+		const cache_key = `user:${email}`;
+
+		await this.prisma.users.update({
+			where: { email },
+			data: {
+				provider: {
+					upsert: {
+						where: { email },
+						create: {
+							...provider,
+						},
+						update: {
+							...provider,
+						},
+					},
+				},
+			},
+		});
+
+		await this.cache.del(cache_key);
+
+		const profile = await this.me(email);
 
 		return profile;
 	}

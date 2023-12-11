@@ -5,12 +5,13 @@ import { PrismaService } from '../../../global/services';
 export class WorkItemsService {
 	constructor(private prisma: PrismaService) {}
 
-	async create(data: any) {
-		const { woi_category_id, title, userId, content } = data;
+	async create(account_id: string, data: any) {
+		const { woi_category_id, title, user_id, content } = data;
 
 		const workItem = await this.prisma.work_items.create({
 			data: {
-				user_id: userId,
+				account_id,
+				user_id,
 				woi_category_id,
 				title,
 				content,
@@ -20,18 +21,21 @@ export class WorkItemsService {
 		return workItem;
 	}
 
-	async findAll() {
-		const workItems = await this.prisma.work_items.findMany();
+	async findAll(account_id: string) {
+		const workItems = await this.prisma.work_items.findMany({
+			where: { account_id },
+		});
 		return workItems;
 	}
 
-	async update(id: string, data: any) {
+	async update(account_id: string, id: string, data: any) {
 		const { checked } = data;
 
 		await this.prisma.work_items.update({
-			where: { id },
+			where: { account_id, id },
 			data: { checked },
 		});
+
 		return;
 	}
 }

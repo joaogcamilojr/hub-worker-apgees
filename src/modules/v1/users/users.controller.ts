@@ -1,4 +1,12 @@
-import { Body, Controller, Delete, Get, Param, Post } from '@nestjs/common';
+import {
+	Body,
+	Controller,
+	Delete,
+	Get,
+	Param,
+	Patch,
+	Post,
+} from '@nestjs/common';
 import { UsersService } from './users.service';
 
 @Controller('api/v1/users')
@@ -10,14 +18,19 @@ export class UsersController {
 		return await this.usersService.create(data);
 	}
 
-	@Get()
-	async findAll() {
-		return await this.usersService.findAll();
+	@Get(':account_id')
+	async findAll(@Param('account_id') account_id: string) {
+		return await this.usersService.findAll(account_id);
 	}
 
-	@Get(':id/me')
-	async me(@Param('id') id: string) {
-		return await this.usersService.me(id);
+	@Get(':email/me')
+	async me(@Param('email') email: string) {
+		return await this.usersService.me(email);
+	}
+
+	@Patch(':email/me')
+	async updateMe(@Param('email') email: string, @Body() data: any) {
+		return await this.usersService.updateMe(email, data);
 	}
 
 	@Delete(':id')
