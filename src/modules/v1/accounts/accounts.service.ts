@@ -33,11 +33,32 @@ export class AccountsService {
 			return cache_accounts;
 		}
 
-		const accounts = await this.prisma.accounts.findMany();
+		const accounts = await this.prisma.accounts.findMany({
+			select: {
+				id: true,
+				name: true,
+				locale: true,
+				status: true,
+				created_at: true,
+				updated_at: true,
+				deleted_at: true,
+				_count: {
+					select: {
+						users: true,
+						apps: true,
+					},
+				},
+			},
+		});
 
-		await this.cache.set(cache_key, accounts, 60 * 60 * 12);
+		const parsedAccounts = accounts.map(({ _count, ...a }) => ({
+			...a,
+			count: _count,
+		}));
 
-		return accounts;
+		await this.cache.set(cache_key, parsedAccounts, 60 * 60 * 12);
+
+		return parsedAccounts;
 	}
 
 	async findOne(id: string) {
@@ -54,6 +75,11 @@ export class AccountsService {
 			select: {
 				id: true,
 				name: true,
+				locale: true,
+				status: true,
+				created_at: true,
+				updated_at: true,
+				deleted_at: true,
 				users: {
 					select: {
 						id: true,
@@ -87,6 +113,73 @@ export class AccountsService {
 		return account;
 	}
 
+	async update(id: string, data: any) {
+		const { name } = data;
+		const cache_key = `account:${id}`;
+
+		const { _count: count, ...account } = await this.prisma.accounts.update({
+			where: {
+				id,
+			},
+			data: {
+				name,
+			},
+			select: {
+				id: true,
+				name: true,
+				locale: true,
+				status: true,
+				created_at: true,
+				updated_at: true,
+				deleted_at: true,
+				_count: {
+					select: {
+						users: true,
+						apps: true,
+					},
+				},
+			},
+		});
+
+		await this.cache.del(cache_key);
+		await this.cache.del('accounts');
+
+		return { ...account, count };
+	}
+
+	async status(id: string, status: number) {
+		const cache_key = `account:${id}`;
+
+		const { _count: count, ...account } = await this.prisma.accounts.update({
+			where: {
+				id,
+			},
+			data: {
+				status,
+			},
+			select: {
+				id: true,
+				name: true,
+				locale: true,
+				status: true,
+				created_at: true,
+				updated_at: true,
+				deleted_at: true,
+				_count: {
+					select: {
+						users: true,
+						apps: true,
+					},
+				},
+			},
+		});
+
+		await this.cache.del(cache_key);
+		await this.cache.del('accounts');
+
+		return { ...account, count };
+	}
+
 	async assign(id: string, { user_id, role }: any) {
 		const cache_key = `account:${id}`;
 
@@ -116,6 +209,7 @@ export class AccountsService {
 		});
 
 		await this.cache.del(cache_key);
+		await this.cache.del('accounts');
 
 		return account;
 	}

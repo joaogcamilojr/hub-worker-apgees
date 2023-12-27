@@ -41,6 +41,9 @@ model auth_providers {
 model accounts {
   id                   String                 @id @default(auto()) @map("_id") @db.ObjectId
   name                 String
+  locale               String                 @default("pt_BR")
+  status               Int                    @default(0)
+  description          String?
   created_at           DateTime               @default(now())
   updated_at           DateTime               @updatedAt
   deleted_at           DateTime?
@@ -53,6 +56,7 @@ model accounts {
 model users_accounts {
   id         String    @id @default(auto()) @map("_id") @db.ObjectId
   role       Int       @default(0)
+  is_primary Boolean   @default(false)
   user_id    String    @db.ObjectId
   account_id String    @db.ObjectId
   created_at DateTime  @default(now())
@@ -61,7 +65,7 @@ model users_accounts {
   user       users     @relation(fields: [user_id], references: [id])
   account    accounts  @relation(fields: [account_id], references: [id])
 
-  @@unique([user_id, account_id])
+  @@unique([user_id, account_id], name: "unique_user_account")
 }
 
 model apps {
